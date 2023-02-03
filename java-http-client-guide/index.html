@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Java HTTP Client guide | felvid.github.io</title>
+<meta name="keywords" content="">
+<meta name="description" content="Learn to use the HTTP Client introduced in Java 11.">
+<meta name="author" content="Felipe Videira">
+<link rel="canonical" href="https://felvid.github.io/java-http-client-guide/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.2af4e238783dd6516e7a376ec8aa77e7e3a2f6214d9bb3f8d69a116e557b3af0.css" integrity="sha256-KvTiOHg91lFuejduyKp35&#43;Oi9iFNm7P41poRblV7OvA=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://felvid.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://felvid.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://felvid.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://felvid.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://felvid.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+<style>
+.post-content pre code{color:#000;background-color:#f7f7f7!important}.post-content :not(table) ::-webkit-scrollbar-thumb{background-color:#d0d0d0;border-color:#f7f7f7;border-width:1px}
+</style>
+<meta property="og:title" content="Java HTTP Client guide" />
+<meta property="og:description" content="Learn to use the HTTP Client introduced in Java 11." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://felvid.github.io/java-http-client-guide/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-03-15T09:00:00-03:00" />
+<meta property="article:modified_time" content="2022-03-15T09:00:00-03:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Java HTTP Client guide"/>
+<meta name="twitter:description" content="Learn to use the HTTP Client introduced in Java 11."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Java HTTP Client guide",
+      "item": "https://felvid.github.io/java-http-client-guide/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Java HTTP Client guide",
+  "name": "Java HTTP Client guide",
+  "description": "Learn to use the HTTP Client introduced in Java 11.",
+  "keywords": [
+    
+  ],
+  "articleBody": "Introduction The HTTP Client was introduced in Java 11 (September 2018) to offer a simpler way to perform HTTP requests than with previously available classes and methods, which were verbose, complex, and outdated (HttpURLConnection API).\nThe main solution adopted until then for Java projects was using external HTTP clients like Apache HttpClient and Spring RestTemplate.\nThus, this new standard API ends the need to add dependencies for this simple purpose.\nThe newer API supports synchronous and asynchronous programming, has many useful methods, and is compatible with HTTP/1.1 and HTTP/2.\nPerforming a basic request An example of performing a GET request and printing the response body to the console:\nHttpClient client = HttpClient.newHttpClient(); HttpRequest request = HttpRequest.newBuilder() .uri(URI.create(\"https://example.com/\")) .build(); HttpResponseString response = client.send(request, BodyHandlers.ofString()); System.out.println(\"response body: \" + response.body()); It was not necessary to specify the HTTP method as GET because it is the default method.\nAs the example shows, the HTTP Client is based on the main classes HttpClient, HttpRequest, and HttpResponse.\nHttpClient creation To perform a request, a HttpClient instance is necessary. There are two static methods to get it.\nThe HttpClient.newHttpClient() creates a default HttpClient, which suits most cases.\nThe HttpClient.newBuilder() returns a builder for more specific settings like HTTP version, connect timeout, a proxy, redirection policy, CookieHandler, HTTP authentication, and more.\nHttpClient client = HttpClient.newBuilder() .followRedirects(Redirect.NORMAL) .build(); HttpRequest creation A request to be performed is represented by the HttpRequest class. It is created by the request builder, and with that we define the URI, request method, body, headers, request timeout, and HTTP version.\nThe HttpRequest.newBuilder() method creates a builder.\nAlternatively, there is the HttpRequest.newBuilder(URI uri) which already receives the URI as a parameter for a shorter code.\nSetting a request header A header can be set with the header(String name, String value) method of the request builder.\nHttpRequest request = HttpRequest.newBuilder(URI.create(\"https://example.com/api/products\")) .header(\"Authorization\", \"Bearer 6f0e91f1-b237-45dc-a462-5b6bd1bf9747\") .build(); Setting the HTTP method and body of a request To set an HTTP method for a request, the builder has methods with the equivalent name: GET, POST, PUT, and DELETE.\nThe request body is passed as a parameter in a BodyPublisher. To create a BodyPublisher instance, the BodyPublishers class has static methods like ofString(String body), ofByteArray(byte[] buf), and others. And there is the static method noBody() to perform the request without a body.\nHttpRequest request = HttpRequest.newBuilder(URI.create(\"https://example.com/api/products\")) .header(\"Content-Type\", \"application/json\") .POST(BodyPublishers.ofString(\"{\\\"message\\\": \\\"Test.\\\"}\")) .build(); The builder also has the method(String method, BodyPublisher bodyPublisher), which receives the HTTP method name as a String.\nHttpRequest request = HttpRequest.newBuilder(URI.create(\"https://example.com/api/products/1\")) .header(\"Content-Type\", \"application/json\") .method(\"POST\", BodyPublishers.ofString(\"{\\\"message\\\": \\\"Test.\\\"}\")) .build(); Request timeout The HttpRequest builder has the timeout method, which receives the time as a java.time.Duration. The time can be obtained with methods like Duration.ofMinutes(2) and Duration.ofSeconds(45).\nThe HttpTimeoutException is used when the time limit is reached before the response is received.\nHttpRequest request = HttpRequest.newBuilder(URI.create(\"https://example.com/api/products\")) .timeout(Duration.ofMinutes(2)) .build(); Without setting a timeout, the request will wait infinitely for a response.\nBodyHandler implementations BodyHandler is an interface that defines how the response body of the request will be managed.\nThe HttpClient methods that perform the requests receive a BodyHandler.\nThe BodyHandlers class has static methods that offer BodyHandler implementations like ofString(), ofByteArray(), ofInputStream(), and others.\nHttpResponseString response1 = client.send(request, HttpResponse.BodyHandlers.ofString()); HttpResponsebyte[] response2 = client.send(request, HttpResponse.BodyHandlers.ofByteArray()); Asynchronous request The HttpClient has the sendAsync(HttpRequest request, BodyHandler responseBodyHandler) method, which returns a CompletableFuture and performs the request asynchronously.\nCompletableFuture is a class designed for asynchronous programming. It represents the result of an operation performed asynchronously and offers useful methods to handle successful results and errors.\nHttpClient client = HttpClient.newHttpClient(); HttpRequest request = HttpRequest.newBuilder(URI.create(\"https://example.com/api/products\")).build(); CompletableFutureHttpResponseString future = client.sendAsync(request, BodyHandlers.ofString()); future.thenAccept(response - System.out.println(\"response body: \" + response.body())); The thenAccept(Consumeraction) method will execute the received Consumer once the request is finished successfully.\nHttpResponse The HttpResponse is returned when sending the request and has methods to get the response status code, body, and headers, as well as the request data.\nHttpClient client = HttpClient.newHttpClient(); HttpRequest request = HttpRequest.newBuilder(URI.create(\"https://example.com/\")).build(); HttpResponseString response = client.send(request, BodyHandlers.ofString()); System.out.println(\"status code: \" + response.statusCode()); System.out.println(\"headers: \" + response.headers()); System.out.println(\"response body: \" + response.body()); Briefer code with static imports The HTTP Client is much simpler than the old classes and methods, but actually it is still verbose. And used frequently, such as in endpoint test code, the problem gets worse.\nThe code can become more succinct by using static imports without losing readability.\nThen let’s use static import for the methods HttpClient.newHttpClient() and HttpRequest.newBuilder​(URI uri) and pass the HttpRequest as a parameter directly without assigning it to a variable:\nvar response = newHttpClient().send(newBuilder(URI.create(\"https://example.com/api/products\")).build(), BodyHandlers.ofString()); System.out.println(\"response body: \" + response.body()); Thus the HTTP Client becomes more compelling.\nConclusion In this guide, we learned how to use the Java HTTP Client to perform HTTP requests and its main features.\n",
+  "wordCount" : "783",
+  "inLanguage": "en",
+  "datePublished": "2022-03-15T09:00:00-03:00",
+  "dateModified": "2022-03-15T09:00:00-03:00",
+  "author":{
+    "@type": "Person",
+    "name": "Felipe Videira"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://felvid.github.io/java-http-client-guide/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "felvid.github.io",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://felvid.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://felvid.github.io/" accesskey="h" title="felvid.github.io (Alt + H)">felvid.github.io</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://felvid.github.io/about/" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      Java HTTP Client guide
+    </h1>
+    <div class="post-description">
+      Learn to use the HTTP Client introduced in Java 11.
+    </div>
+    <div class="post-meta"><span title='2022-03-15 09:00:00 -0300 -03'>March 15, 2022</span>&nbsp;·&nbsp;Felipe Videira
+
+</div>
+  </header> 
+  <div class="post-content"><h2 id="introduction">Introduction</h2>
+<p>The HTTP Client was introduced in Java 11 (September 2018) to offer a simpler way to perform HTTP requests than with previously available classes and methods, which were verbose, complex, and outdated (<code>HttpURLConnection</code> API).</p>
+<p>The main solution adopted until then for Java projects was using external HTTP clients like Apache HttpClient and Spring RestTemplate.</p>
+<p>Thus, this new standard API ends the need to add dependencies for this simple purpose.</p>
+<p>The newer API supports synchronous and asynchronous programming, has many useful methods, and is compatible with HTTP/1.1 and HTTP/2.</p>
+<h2 id="performing-a-basic-request">Performing a basic request</h2>
+<p>An example of performing a GET request and printing the response body to the console:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">HttpClient client <span style="font-weight:bold">=</span> HttpClient<span style="font-weight:bold">.</span><span style="color:#008080">newHttpClient</span><span style="font-weight:bold">();</span>
+HttpRequest request <span style="font-weight:bold">=</span> HttpRequest<span style="font-weight:bold">.</span><span style="color:#008080">newBuilder</span><span style="font-weight:bold">()</span>
+                <span style="font-weight:bold">.</span><span style="color:#008080">uri</span><span style="font-weight:bold">(</span>URI<span style="font-weight:bold">.</span><span style="color:#008080">create</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;https://example.com/&#34;</span><span style="font-weight:bold">))</span>
+                <span style="font-weight:bold">.</span><span style="color:#008080">build</span><span style="font-weight:bold">();</span>
+HttpResponse<span style="font-weight:bold">&lt;</span>String<span style="font-weight:bold">&gt;</span> response <span style="font-weight:bold">=</span> client<span style="font-weight:bold">.</span><span style="color:#008080">send</span><span style="font-weight:bold">(</span>request<span style="font-weight:bold">,</span> BodyHandlers<span style="font-weight:bold">.</span><span style="color:#008080">ofString</span><span style="font-weight:bold">());</span>
+System<span style="font-weight:bold">.</span><span style="color:#008080">out</span><span style="font-weight:bold">.</span><span style="color:#008080">println</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;response body: &#34;</span> <span style="font-weight:bold">+</span> response<span style="font-weight:bold">.</span><span style="color:#008080">body</span><span style="font-weight:bold">());</span>
+</code></pre></div><p>It was not necessary to specify the HTTP method as GET because it is the default method.</p>
+<p>As the example shows, the HTTP Client is based on the main classes <code>HttpClient</code>, <code>HttpRequest</code>, and <code>HttpResponse</code>.</p>
+<h2 id="httpclient-creation">HttpClient creation</h2>
+<p>To perform a request, a <code>HttpClient</code> instance is necessary. There are two static methods to get it.</p>
+<p>The <code>HttpClient.newHttpClient()</code> creates a default <code>HttpClient</code>, which suits most cases.</p>
+<p>The <code>HttpClient.newBuilder()</code> returns a builder for more specific settings like HTTP version, connect timeout, a proxy, redirection policy, CookieHandler, HTTP authentication, and more.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">HttpClient client <span style="font-weight:bold">=</span> HttpClient<span style="font-weight:bold">.</span><span style="color:#008080">newBuilder</span><span style="font-weight:bold">()</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">followRedirects</span><span style="font-weight:bold">(</span>Redirect<span style="font-weight:bold">.</span><span style="color:#008080">NORMAL</span><span style="font-weight:bold">)</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">build</span><span style="font-weight:bold">();</span>
+</code></pre></div><h2 id="httprequest-creation">HttpRequest creation</h2>
+<p>A request to be performed is represented by the <code>HttpRequest</code> class. It is created by the request builder, and with that we define the URI, request method, body, headers, request timeout, and HTTP version.</p>
+<p>The <code>HttpRequest.newBuilder()</code> method creates a builder.</p>
+<p>Alternatively, there is the <code>HttpRequest.newBuilder(URI uri)</code> which already receives the URI as a parameter for a shorter code.</p>
+<h2 id="setting-a-request-header">Setting a request header</h2>
+<p>A header can be set with the <code>header(String name, String value)</code> method of the request builder.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">HttpRequest request <span style="font-weight:bold">=</span> HttpRequest<span style="font-weight:bold">.</span><span style="color:#008080">newBuilder</span><span style="font-weight:bold">(</span>URI<span style="font-weight:bold">.</span><span style="color:#008080">create</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;https://example.com/api/products&#34;</span><span style="font-weight:bold">))</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">header</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;Authorization&#34;</span><span style="font-weight:bold">,</span> <span style="color:#b84">&#34;Bearer 6f0e91f1-b237-45dc-a462-5b6bd1bf9747&#34;</span><span style="font-weight:bold">)</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">build</span><span style="font-weight:bold">();</span>
+</code></pre></div><h2 id="setting-the-http-method-and-body-of-a-request">Setting the HTTP method and body of a request</h2>
+<p>To set an HTTP method for a request, the builder has methods with the equivalent name: GET, POST, PUT, and DELETE.</p>
+<p>The request body is passed as a parameter in a <code>BodyPublisher</code>. To create a <code>BodyPublisher</code> instance, the <code>BodyPublishers</code> class has static methods like <code>ofString(String body)</code>, <code>ofByteArray(byte[] buf)</code>, and others. And there is the static method <code>noBody()</code> to perform the request without a body.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">HttpRequest request <span style="font-weight:bold">=</span> HttpRequest<span style="font-weight:bold">.</span><span style="color:#008080">newBuilder</span><span style="font-weight:bold">(</span>URI<span style="font-weight:bold">.</span><span style="color:#008080">create</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;https://example.com/api/products&#34;</span><span style="font-weight:bold">))</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">header</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;Content-Type&#34;</span><span style="font-weight:bold">,</span> <span style="color:#b84">&#34;application/json&#34;</span><span style="font-weight:bold">)</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">POST</span><span style="font-weight:bold">(</span>BodyPublishers<span style="font-weight:bold">.</span><span style="color:#008080">ofString</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;{\&#34;message\&#34;: \&#34;Test.\&#34;}&#34;</span><span style="font-weight:bold">))</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">build</span><span style="font-weight:bold">();</span>
+</code></pre></div><p>The builder also has the <code>method(String method, BodyPublisher bodyPublisher)</code>, which receives the HTTP method name as a <code>String</code>.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">HttpRequest request <span style="font-weight:bold">=</span> HttpRequest<span style="font-weight:bold">.</span><span style="color:#008080">newBuilder</span><span style="font-weight:bold">(</span>URI<span style="font-weight:bold">.</span><span style="color:#008080">create</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;https://example.com/api/products/1&#34;</span><span style="font-weight:bold">))</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">header</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;Content-Type&#34;</span><span style="font-weight:bold">,</span> <span style="color:#b84">&#34;application/json&#34;</span><span style="font-weight:bold">)</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">method</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;POST&#34;</span><span style="font-weight:bold">,</span> BodyPublishers<span style="font-weight:bold">.</span><span style="color:#008080">ofString</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;{\&#34;message\&#34;: \&#34;Test.\&#34;}&#34;</span><span style="font-weight:bold">))</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">build</span><span style="font-weight:bold">();</span>
+</code></pre></div><h2 id="request-timeout">Request timeout</h2>
+<p>The <code>HttpRequest</code> builder has the <code>timeout</code> method, which receives the time as a <code>java.time.Duration</code>. The time can be obtained with methods like <code>Duration.ofMinutes(2)</code> and <code>Duration.ofSeconds(45)</code>.</p>
+<p>The <code>HttpTimeoutException</code> is used when the time limit is reached before the response is received.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">HttpRequest request <span style="font-weight:bold">=</span> HttpRequest<span style="font-weight:bold">.</span><span style="color:#008080">newBuilder</span><span style="font-weight:bold">(</span>URI<span style="font-weight:bold">.</span><span style="color:#008080">create</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;https://example.com/api/products&#34;</span><span style="font-weight:bold">))</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">timeout</span><span style="font-weight:bold">(</span>Duration<span style="font-weight:bold">.</span><span style="color:#008080">ofMinutes</span><span style="font-weight:bold">(</span>2<span style="font-weight:bold">))</span>
+        <span style="font-weight:bold">.</span><span style="color:#008080">build</span><span style="font-weight:bold">();</span>
+</code></pre></div><p>Without setting a timeout, the request will wait infinitely for a response.</p>
+<h2 id="bodyhandler-implementations">BodyHandler implementations</h2>
+<p><code>BodyHandler</code> is an interface that defines how the response body of the request will be managed.</p>
+<p>The <code>HttpClient</code> methods that perform the requests receive a <code>BodyHandler</code>.</p>
+<p>The <code>BodyHandlers</code> class has static methods that offer <code>BodyHandler</code> implementations like <code>ofString()</code>, <code>ofByteArray()</code>, <code>ofInputStream()</code>, and others.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">HttpResponse<span style="font-weight:bold">&lt;</span>String<span style="font-weight:bold">&gt;</span> response1 <span style="font-weight:bold">=</span> client<span style="font-weight:bold">.</span><span style="color:#008080">send</span><span style="font-weight:bold">(</span>request<span style="font-weight:bold">,</span> HttpResponse<span style="font-weight:bold">.</span><span style="color:#008080">BodyHandlers</span><span style="font-weight:bold">.</span><span style="color:#008080">ofString</span><span style="font-weight:bold">());</span>
+HttpResponse<span style="font-weight:bold">&lt;</span><span style="color:#458;font-weight:bold">byte</span><span style="font-weight:bold">[]&gt;</span> response2 <span style="font-weight:bold">=</span> client<span style="font-weight:bold">.</span><span style="color:#008080">send</span><span style="font-weight:bold">(</span>request<span style="font-weight:bold">,</span> HttpResponse<span style="font-weight:bold">.</span><span style="color:#008080">BodyHandlers</span><span style="font-weight:bold">.</span><span style="color:#008080">ofByteArray</span><span style="font-weight:bold">());</span>
+</code></pre></div><h2 id="asynchronous-request">Asynchronous request</h2>
+<p>The <code>HttpClient</code> has the <code>sendAsync(HttpRequest request, BodyHandler&lt;T&gt; responseBodyHandler)</code> method, which returns a <code>CompletableFuture</code> and performs the request asynchronously.</p>
+<p><code>CompletableFuture</code> is a class designed for asynchronous programming. It represents the result of an operation performed asynchronously and offers useful methods to handle successful results and errors.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">HttpClient client <span style="font-weight:bold">=</span> HttpClient<span style="font-weight:bold">.</span><span style="color:#008080">newHttpClient</span><span style="font-weight:bold">();</span>
+HttpRequest request <span style="font-weight:bold">=</span> HttpRequest<span style="font-weight:bold">.</span><span style="color:#008080">newBuilder</span><span style="font-weight:bold">(</span>URI<span style="font-weight:bold">.</span><span style="color:#008080">create</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;https://example.com/api/products&#34;</span><span style="font-weight:bold">)).</span><span style="color:#008080">build</span><span style="font-weight:bold">();</span>
+CompletableFuture<span style="font-weight:bold">&lt;</span>HttpResponse<span style="font-weight:bold">&lt;</span>String<span style="font-weight:bold">&gt;&gt;</span> future <span style="font-weight:bold">=</span> client<span style="font-weight:bold">.</span><span style="color:#008080">sendAsync</span><span style="font-weight:bold">(</span>request<span style="font-weight:bold">,</span> BodyHandlers<span style="font-weight:bold">.</span><span style="color:#008080">ofString</span><span style="font-weight:bold">());</span>
+future<span style="font-weight:bold">.</span><span style="color:#008080">thenAccept</span><span style="font-weight:bold">(</span>response <span style="font-weight:bold">-&gt;</span> System<span style="font-weight:bold">.</span><span style="color:#008080">out</span><span style="font-weight:bold">.</span><span style="color:#008080">println</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;response body: &#34;</span> <span style="font-weight:bold">+</span> response<span style="font-weight:bold">.</span><span style="color:#008080">body</span><span style="font-weight:bold">()));</span>
+</code></pre></div><p>The <code>thenAccept(Consumer&lt;? super T&gt; action)</code> method will execute the received <code>Consumer</code> once the request is finished successfully.</p>
+<h2 id="httpresponse">HttpResponse</h2>
+<p>The <code>HttpResponse</code> is returned when sending the request and has methods to get the response status code, body, and headers, as well as the request data.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">HttpClient client <span style="font-weight:bold">=</span> HttpClient<span style="font-weight:bold">.</span><span style="color:#008080">newHttpClient</span><span style="font-weight:bold">();</span>
+HttpRequest request <span style="font-weight:bold">=</span> HttpRequest<span style="font-weight:bold">.</span><span style="color:#008080">newBuilder</span><span style="font-weight:bold">(</span>URI<span style="font-weight:bold">.</span><span style="color:#008080">create</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;https://example.com/&#34;</span><span style="font-weight:bold">)).</span><span style="color:#008080">build</span><span style="font-weight:bold">();</span>
+HttpResponse<span style="font-weight:bold">&lt;</span>String<span style="font-weight:bold">&gt;</span> response <span style="font-weight:bold">=</span> client<span style="font-weight:bold">.</span><span style="color:#008080">send</span><span style="font-weight:bold">(</span>request<span style="font-weight:bold">,</span> BodyHandlers<span style="font-weight:bold">.</span><span style="color:#008080">ofString</span><span style="font-weight:bold">());</span>
+System<span style="font-weight:bold">.</span><span style="color:#008080">out</span><span style="font-weight:bold">.</span><span style="color:#008080">println</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;status code: &#34;</span> <span style="font-weight:bold">+</span> response<span style="font-weight:bold">.</span><span style="color:#008080">statusCode</span><span style="font-weight:bold">());</span>
+System<span style="font-weight:bold">.</span><span style="color:#008080">out</span><span style="font-weight:bold">.</span><span style="color:#008080">println</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;headers: &#34;</span> <span style="font-weight:bold">+</span> response<span style="font-weight:bold">.</span><span style="color:#008080">headers</span><span style="font-weight:bold">());</span>
+System<span style="font-weight:bold">.</span><span style="color:#008080">out</span><span style="font-weight:bold">.</span><span style="color:#008080">println</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;response body: &#34;</span> <span style="font-weight:bold">+</span> response<span style="font-weight:bold">.</span><span style="color:#008080">body</span><span style="font-weight:bold">());</span>
+</code></pre></div><h2 id="briefer-code-with-static-imports">Briefer code with static imports</h2>
+<p>The HTTP Client is much simpler than the old classes and methods, but actually it is still verbose. And used frequently, such as in endpoint test code, the problem gets worse.</p>
+<p>The code can become more succinct by using static imports without losing readability.</p>
+<p>Then let&rsquo;s use static import for the methods <code>HttpClient.newHttpClient()</code> and <code>HttpRequest.newBuilder​(URI uri)</code> and pass the <code>HttpRequest</code> as a parameter directly without assigning it to a variable:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">var response <span style="font-weight:bold">=</span> newHttpClient<span style="font-weight:bold">().</span><span style="color:#008080">send</span><span style="font-weight:bold">(</span>newBuilder<span style="font-weight:bold">(</span>URI<span style="font-weight:bold">.</span><span style="color:#008080">create</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;https://example.com/api/products&#34;</span><span style="font-weight:bold">)).</span><span style="color:#008080">build</span><span style="font-weight:bold">(),</span>
+        BodyHandlers<span style="font-weight:bold">.</span><span style="color:#008080">ofString</span><span style="font-weight:bold">());</span>
+System<span style="font-weight:bold">.</span><span style="color:#008080">out</span><span style="font-weight:bold">.</span><span style="color:#008080">println</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;response body: &#34;</span> <span style="font-weight:bold">+</span> response<span style="font-weight:bold">.</span><span style="color:#008080">body</span><span style="font-weight:bold">());</span>
+</code></pre></div><p>Thus the HTTP Client becomes more compelling.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this guide, we learned how to use the Java HTTP Client to perform HTTP requests and its main features.</p>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <div style="font-size: 20px; margin-bottom: 15px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/> </svg>
+        <a href="https://twitter.com/fel_vid" rel="noopener noreferrer" target="_blank" style="border-bottom: none;">fel_vid</a>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-left: 50px;"> <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/> </svg>
+        <a href="https://github.com/felvid" rel="noopener noreferrer" target="_blank" style="border-bottom: none;">felvid</a>
+    </div>
+    <span>&copy; 2023 <a href="http://localhost:1313/">felvid.github.io</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+</body>
+
+</html>

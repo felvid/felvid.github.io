@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>felvid.github.io</title>
+    <link>https://felvid.github.io/</link>
+    <description>Recent content on felvid.github.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 15 Mar 2022 09:00:00 -0300</lastBuildDate><atom:link href="https://felvid.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Java HTTP Client guide</title>
+      <link>https://felvid.github.io/java-http-client-guide/</link>
+      <pubDate>Tue, 15 Mar 2022 09:00:00 -0300</pubDate>
+      
+      <guid>https://felvid.github.io/java-http-client-guide/</guid>
+      <description>Learn to use the HTTP Client introduced in Java 11.</description>
+    </item>
+    
+    <item>
+      <title>ScheduledExecutorService guide: scheduled tasks without dependencies</title>
+      <link>https://felvid.github.io/scheduledexecutorservice-guide/</link>
+      <pubDate>Fri, 11 Mar 2022 09:00:00 -0300</pubDate>
+      
+      <guid>https://felvid.github.io/scheduledexecutorservice-guide/</guid>
+      <description>Learn to create scheduled tasks using the standard API.</description>
+    </item>
+    
+    <item>
+      <title>How to replace line breaks from a String</title>
+      <link>https://felvid.github.io/how-to-replace-line-breaks-from-a-string/</link>
+      <pubDate>Mon, 21 Feb 2022 09:00:00 -0300</pubDate>
+      
+      <guid>https://felvid.github.io/how-to-replace-line-breaks-from-a-string/</guid>
+      <description>Learn ways to replace line breaks.</description>
+    </item>
+    
+    <item>
+      <title>About</title>
+      <link>https://felvid.github.io/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://felvid.github.io/about/</guid>
+      <description>This is a blog about software development using Java in a different way than the most common.
+It shows how to use more vanilla Java, functional programming, and the best lightweight libraries to create your applications, rather than unnecessary and cumbersome frameworks.
+This way of development brings more efficiency, performance, quality, ease of testing, and other benefits. And it&amp;rsquo;s also easier to learn, avoiding mistakes and reducing the learning curve for beginner developers on your team.</description>
+    </item>
+    
+  </channel>
+</rss>

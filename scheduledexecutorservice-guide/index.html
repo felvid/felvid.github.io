@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>ScheduledExecutorService guide: scheduled tasks without dependencies | felvid.github.io</title>
+<meta name="keywords" content="">
+<meta name="description" content="Learn to create scheduled tasks using the standard API.">
+<meta name="author" content="Felipe Videira">
+<link rel="canonical" href="https://felvid.github.io/scheduledexecutorservice-guide/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.2af4e238783dd6516e7a376ec8aa77e7e3a2f6214d9bb3f8d69a116e557b3af0.css" integrity="sha256-KvTiOHg91lFuejduyKp35&#43;Oi9iFNm7P41poRblV7OvA=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://felvid.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://felvid.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://felvid.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://felvid.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://felvid.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+<style>
+.post-content pre code{color:#000;background-color:#f7f7f7!important}.post-content :not(table) ::-webkit-scrollbar-thumb{background-color:#d0d0d0;border-color:#f7f7f7;border-width:1px}
+</style>
+<meta property="og:title" content="ScheduledExecutorService guide: scheduled tasks without dependencies" />
+<meta property="og:description" content="Learn to create scheduled tasks using the standard API." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://felvid.github.io/scheduledexecutorservice-guide/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-03-11T09:00:00-03:00" />
+<meta property="article:modified_time" content="2022-03-11T09:00:00-03:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="ScheduledExecutorService guide: scheduled tasks without dependencies"/>
+<meta name="twitter:description" content="Learn to create scheduled tasks using the standard API."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "ScheduledExecutorService guide: scheduled tasks without dependencies",
+      "item": "https://felvid.github.io/scheduledexecutorservice-guide/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ScheduledExecutorService guide: scheduled tasks without dependencies",
+  "name": "ScheduledExecutorService guide: scheduled tasks without dependencies",
+  "description": "Learn to create scheduled tasks using the standard API.",
+  "keywords": [
+    
+  ],
+  "articleBody": "Introduction The ScheduledExecutorService interface can be used to execute tasks once or repeatedly and with an interval and behavior that you define.\nGood reasons to choose the ScheduledExecutorService:\n It is part of the Java standard API, so you can implement this kind of feature without using a framework or adding dependencies to your application. It is more suitable than using Thread.sleep(millis) with while loops. It is a better replacement for the older java.util.Timer and java.util.TimerTask classes.  The ScheduledExecutorService is part of the java.util.concurrent package, introduced in Java 5.0 (September 2004).\nGetting an instance You can get a ScheduledExecutorService instance using the static method newScheduledThreadPool of the Executors class.\nScheduledExecutorService service = Executors.newScheduledThreadPool(1); This method receives the corePoolSize parameter, which defines the number of threads that will be kept in the pool. These threads are used to execute the tasks.\nWith one thread on the pool, only one task will run at a time. With two threads, two tasks can be executed at the same time. And so on.\nCreating a task To create a task to be executed by the ScheduledExecutorService, you need to implement the Runnable interface or the Callable interface. The main difference is that Runnable has a void method, while Callable has a method with a return value.\nSee an example with a lambda expression:\nRunnable task = () - { System.out.println(\"Running the task.\"); }; The ScheduledExecutorService has three methods that receive a Runnable as a parameter and one that receives a Callable to run it.\nLet’s see each of the four ScheduledExecutorService methods.\nschedule (with Runnable) The schedule method will only execute the task once.\nIt receives three parameters:\n Runnable command long delay TimeUnit unit  For example:\nservice.schedule(task, 3, TimeUnit.SECONDS); schedule (with Callable) This method will execute the task once and will make the return value of the task available through the get method of the ScheduledFuture that is returned.\nIt receives three parameters:\n Callable callable long delay TimeUnit unit  A simplified example:\nCallableString task = () - { return \"Task completed successfully.\"; }; ScheduledFutureString scheduledFuture = service.schedule(task, 3, TimeUnit.SECONDS); String result = scheduledFuture.get(); System.out.println(\"Result: \" + result); // Output: Result: Task completed successfully. scheduleAtFixedRate The scheduleAtFixedRate method will try to execute the task always with the same defined period.\nIf the period is set to 10 seconds and each task execution takes 5 seconds to complete, then the task will run every 10 seconds.\nBut if a task execution takes longer to complete than the defined period, the next execution will start only after the current one finishes. The task executions will not happen concurrently.\nIt receives four parameters:\n Runnable command long initialDelay (used before the first execution) long period (used between the other executions) TimeUnit unit  Example:\nservice.scheduleAtFixedRate(task, 0, 5, TimeUnit.SECONDS); scheduleWithFixedDelay The scheduleWithFixedDelay method is used to execute a task repeatedly with a chosen amount of time between executions added to the time spent on the task execution.\nSo if the delay is set to 10 seconds and each task execution takes 5 seconds to complete, then the task will run every 15 seconds.\nIt receives four parameters:\n Runnable command long initialDelay (used before the first execution) long delay (used between the other executions) TimeUnit unit  For example:\nservice.scheduleWithFixedDelay(task, 0, 5, TimeUnit.SECONDS); The returned ScheduledFuture All the four methods of the ScheduledExecutorService interface return an instance of the ScheduledFuture interface. It can be used to manipulate and obtain information about the execution of the task.\nFor example, it has the cancel method that prevents new task executions.\nThe get method can be used to get the value that the task returns, but it will only work properly with the schedule method that receives the Callable interface.\nConclusion In this guide, we learned how to schedule a task once and also repeatedly using the ScheduledExecutorService.\n",
+  "wordCount" : "631",
+  "inLanguage": "en",
+  "datePublished": "2022-03-11T09:00:00-03:00",
+  "dateModified": "2022-03-11T09:00:00-03:00",
+  "author":{
+    "@type": "Person",
+    "name": "Felipe Videira"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://felvid.github.io/scheduledexecutorservice-guide/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "felvid.github.io",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://felvid.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://felvid.github.io/" accesskey="h" title="felvid.github.io (Alt + H)">felvid.github.io</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://felvid.github.io/about/" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      ScheduledExecutorService guide: scheduled tasks without dependencies
+    </h1>
+    <div class="post-description">
+      Learn to create scheduled tasks using the standard API.
+    </div>
+    <div class="post-meta"><span title='2022-03-11 09:00:00 -0300 -03'>March 11, 2022</span>&nbsp;·&nbsp;Felipe Videira
+
+</div>
+  </header> 
+  <div class="post-content"><h2 id="introduction">Introduction</h2>
+<p>The <code>ScheduledExecutorService</code> interface can be used to execute tasks once or repeatedly and with an interval and behavior that you define.</p>
+<p>Good reasons to choose the <code>ScheduledExecutorService</code>:</p>
+<ul>
+<li>It is part of the Java standard API, so you can implement this kind of feature without using a framework or adding dependencies to your application.</li>
+<li>It is more suitable than using <code>Thread.sleep(millis)</code> with <code>while</code> loops.</li>
+<li>It is a better replacement for the older <code>java.util.Timer</code> and <code>java.util.TimerTask</code> classes.</li>
+</ul>
+<p>The <code>ScheduledExecutorService</code> is part of the <code>java.util.concurrent</code> package, introduced in Java 5.0 (September 2004).</p>
+<h2 id="getting-an-instance">Getting an instance</h2>
+<p>You can get a <code>ScheduledExecutorService</code> instance using the static method <code>newScheduledThreadPool</code> of the <code>Executors</code> class.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">ScheduledExecutorService service <span style="font-weight:bold">=</span> Executors<span style="font-weight:bold">.</span><span style="color:#008080">newScheduledThreadPool</span><span style="font-weight:bold">(</span>1<span style="font-weight:bold">);</span>
+</code></pre></div><p>This method receives the <code>corePoolSize</code> parameter, which defines the number of threads that will be kept in the pool. These threads are used to execute the tasks.</p>
+<p>With one thread on the pool, only one task will run at a time. With two threads, two tasks can be executed at the same time. And so on.</p>
+<h2 id="creating-a-task">Creating a task</h2>
+<p>To create a task to be executed by the <code>ScheduledExecutorService</code>, you need to implement the <code>Runnable</code> interface or the <code>Callable</code> interface. The main difference is that <code>Runnable</code> has a void method, while <code>Callable</code> has a method with a return value.</p>
+<p>See an example with a lambda expression:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">Runnable task <span style="font-weight:bold">=</span> <span style="font-weight:bold">()</span> <span style="font-weight:bold">-&gt;</span> <span style="font-weight:bold">{</span>
+    System<span style="font-weight:bold">.</span><span style="color:#008080">out</span><span style="font-weight:bold">.</span><span style="color:#008080">println</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;Running the task.&#34;</span><span style="font-weight:bold">);</span>
+<span style="font-weight:bold">};</span>
+</code></pre></div><p>The <code>ScheduledExecutorService</code> has three methods that receive a <code>Runnable</code> as a parameter and one that receives a <code>Callable</code> to run it.</p>
+<p>Let&rsquo;s see each of the four <code>ScheduledExecutorService</code> methods.</p>
+<h2 id="schedule-with-runnable">schedule (with Runnable)</h2>
+<p>The <code>schedule</code> method will only execute the task once.</p>
+<p>It receives three parameters:</p>
+<ul>
+<li><code>Runnable command</code></li>
+<li><code>long delay</code></li>
+<li><code>TimeUnit unit</code></li>
+</ul>
+<p>For example:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">service<span style="font-weight:bold">.</span><span style="color:#008080">schedule</span><span style="font-weight:bold">(</span>task<span style="font-weight:bold">,</span> 3<span style="font-weight:bold">,</span> TimeUnit<span style="font-weight:bold">.</span><span style="color:#008080">SECONDS</span><span style="font-weight:bold">);</span>
+</code></pre></div><h2 id="schedule-with-callable">schedule (with Callable)</h2>
+<p>This method will execute the task once and will make the return value of the task available through the <code>get</code> method of the <code>ScheduledFuture</code> that is returned.</p>
+<p>It receives three parameters:</p>
+<ul>
+<li><code>Callable&lt;V&gt; callable</code></li>
+<li><code>long delay</code></li>
+<li><code>TimeUnit unit</code></li>
+</ul>
+<p>A simplified example:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">Callable<span style="font-weight:bold">&lt;</span>String<span style="font-weight:bold">&gt;</span> task <span style="font-weight:bold">=</span> <span style="font-weight:bold">()</span> <span style="font-weight:bold">-&gt;</span> <span style="font-weight:bold">{</span>
+    <span style="font-weight:bold">return</span> <span style="color:#b84">&#34;Task completed successfully.&#34;</span><span style="font-weight:bold">;</span>
+<span style="font-weight:bold">};</span>
+ScheduledFuture<span style="font-weight:bold">&lt;</span>String<span style="font-weight:bold">&gt;</span> scheduledFuture <span style="font-weight:bold">=</span> service<span style="font-weight:bold">.</span><span style="color:#008080">schedule</span><span style="font-weight:bold">(</span>task<span style="font-weight:bold">,</span> 3<span style="font-weight:bold">,</span> TimeUnit<span style="font-weight:bold">.</span><span style="color:#008080">SECONDS</span><span style="font-weight:bold">);</span>
+String result <span style="font-weight:bold">=</span> scheduledFuture<span style="font-weight:bold">.</span><span style="color:#008080">get</span><span style="font-weight:bold">();</span>
+System<span style="font-weight:bold">.</span><span style="color:#008080">out</span><span style="font-weight:bold">.</span><span style="color:#008080">println</span><span style="font-weight:bold">(</span><span style="color:#b84">&#34;Result: &#34;</span> <span style="font-weight:bold">+</span> result<span style="font-weight:bold">);</span>
+<span style="color:#998;font-style:italic">// Output: Result: Task completed successfully.
+</span></code></pre></div><h2 id="scheduleatfixedrate">scheduleAtFixedRate</h2>
+<p>The <code>scheduleAtFixedRate</code> method will try to execute the task always with the same defined period.</p>
+<p>If the period is set to 10 seconds and each task execution takes 5 seconds to complete, then the task will run every 10 seconds.</p>
+<p>But if a task execution takes longer to complete than the defined period, the next execution will start only after the current one finishes. The task executions will not happen concurrently.</p>
+<p>It receives four parameters:</p>
+<ul>
+<li><code>Runnable command</code></li>
+<li><code>long initialDelay</code> (used before the first execution)</li>
+<li><code>long period</code> (used between the other executions)</li>
+<li><code>TimeUnit unit</code></li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">service<span style="font-weight:bold">.</span><span style="color:#008080">scheduleAtFixedRate</span><span style="font-weight:bold">(</span>task<span style="font-weight:bold">,</span> 0<span style="font-weight:bold">,</span> 5<span style="font-weight:bold">,</span> TimeUnit<span style="font-weight:bold">.</span><span style="color:#008080">SECONDS</span><span style="font-weight:bold">);</span>
+</code></pre></div><h2 id="schedulewithfixeddelay">scheduleWithFixedDelay</h2>
+<p>The <code>scheduleWithFixedDelay</code> method is used to execute a task repeatedly with a chosen amount of time between executions added to the time spent on the task execution.</p>
+<p>So if the delay is set to 10 seconds and each task execution takes 5 seconds to complete, then the task will run every 15 seconds.</p>
+<p>It receives four parameters:</p>
+<ul>
+<li><code>Runnable command</code></li>
+<li><code>long initialDelay</code> (used before the first execution)</li>
+<li><code>long delay</code> (used between the other executions)</li>
+<li><code>TimeUnit unit</code></li>
+</ul>
+<p>For example:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Java" data-lang="Java">service<span style="font-weight:bold">.</span><span style="color:#008080">scheduleWithFixedDelay</span><span style="font-weight:bold">(</span>task<span style="font-weight:bold">,</span> 0<span style="font-weight:bold">,</span> 5<span style="font-weight:bold">,</span> TimeUnit<span style="font-weight:bold">.</span><span style="color:#008080">SECONDS</span><span style="font-weight:bold">);</span>
+</code></pre></div><h2 id="the-returned-scheduledfuture">The returned ScheduledFuture</h2>
+<p>All the four methods of the <code>ScheduledExecutorService</code> interface return an instance of the <code>ScheduledFuture</code> interface. It can be used to manipulate and obtain information about the execution of the task.</p>
+<p>For example, it has the <code>cancel</code> method that prevents new task executions.</p>
+<p>The <code>get</code> method can be used to get the value that the task returns, but it will only work properly with the <code>schedule</code> method that receives the <code>Callable</code> interface.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this guide, we learned how to schedule a task once and also repeatedly using the <code>ScheduledExecutorService</code>.</p>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <div style="font-size: 20px; margin-bottom: 15px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/> </svg>
+        <a href="https://twitter.com/fel_vid" rel="noopener noreferrer" target="_blank" style="border-bottom: none;">fel_vid</a>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-left: 50px;"> <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/> </svg>
+        <a href="https://github.com/felvid" rel="noopener noreferrer" target="_blank" style="border-bottom: none;">felvid</a>
+    </div>
+    <span>&copy; 2023 <a href="http://localhost:1313/">felvid.github.io</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+</body>
+
+</html>
